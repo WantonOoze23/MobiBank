@@ -1,0 +1,62 @@
+package com.example.data.repository
+
+import com.example.data.local.datastore.TokenManager
+import com.example.data.mapper.toDomain
+import com.example.data.network.api.AuthApi
+import com.example.data.network.dto.request.LoginRequestDto
+import com.example.data.network.dto.request.RegisterRequestDto
+import com.example.domain.model.AuthResult
+import com.example.domain.model.LoginData
+import com.example.domain.model.RegisterData
+import com.example.domain.repository.AuthRepository
+
+
+class AuthRepositoryImpl(
+    private val authApi: AuthApi,
+    private val tokenManager: TokenManager
+) : AuthRepository {
+    override suspend fun register(data: RegisterData): Result<AuthResult> {
+        return try{
+            val requestDto = RegisterRequestDto(
+                firstName = data.firstName,
+                lastName = data.lastName,
+                middleName = data.middleName ?: "",
+                phone = data.phone,
+                email = data.email,
+                password = data.password
+            )
+
+            val response = authApi.register(requestDto)
+
+            tokenManager.saveSession(response.token, response.userId ?: "")
+            Result.success(response.toDomain())
+        } catch (e: Exception){
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun login(data: LoginData): Result<AuthResult> {
+        return try{
+            val requestDto = LoginRequestDto(
+                login = data.login,
+                password = data.password
+            )
+            val response = authApi.login(requestDto)
+
+            tokenManager.saveSession(response.token, response.userId ?: "")
+            Result.success(response.toDomain())
+
+        } catch (e: Exception){
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun logout(): Result<Unit> {
+        return try{
+            tokenManager.clearSession()
+            Result.success(Unit)
+        } catch (e: Exception){
+            Result.failure(e)
+        }
+    }
+}

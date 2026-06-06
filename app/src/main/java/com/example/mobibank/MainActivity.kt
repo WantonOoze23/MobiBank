@@ -5,43 +5,53 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.mobibank.ui.theme.MobiBankTheme
+import androidx.navigation.compose.rememberNavController
+import com.example.data.local.datastore.TokenManager
+import com.example.mobibank.ui.navigation.MobiBankNavHost
+import com.example.mobibank.ui.navigation.Route
+import kotlinx.coroutines.flow.first
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
+
+    private val tokenManager: TokenManager by inject()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MobiBankTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+            MaterialTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val navController = rememberNavController()
+                    val startDestination = remember { mutableStateOf<String?>(null) }
+
+                    LaunchedEffect(Unit) {
+                        val token = tokenManager.getToken.first()
+                        if (token.isNullOrBlank()) {
+                            startDestination.value = Route.LOGIN
+                        } else {
+                            startDestination.value = Route.ACCOUNTS
+                        }
+                    }
+
+                    val destination = startDestination.value
+                    if (destination != null) {
+                        MobiBankNavHost(
+                            navController = navController,
+                            startDestination = destination
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MobiBankTheme {
-        Greeting("Android")
     }
 }
