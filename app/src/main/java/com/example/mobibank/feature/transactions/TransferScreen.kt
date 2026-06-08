@@ -142,6 +142,7 @@ fun TransferScreen(
                         viewModel.transfer(accountId, cardNumber, amount)
                         Toast.makeText(context, "Відправка...", Toast.LENGTH_SHORT).show()
                     }
+                    onNavigateBack()
                 },
                 modifier = Modifier
                     .fillMaxWidth()

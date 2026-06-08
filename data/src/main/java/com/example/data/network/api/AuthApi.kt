@@ -1,5 +1,6 @@
 package com.example.data.network.api
 
+import com.example.data.network.dto.request.ChangePasswordRequestDto
 import com.example.data.network.dto.request.LoginRequestDto
 import com.example.data.network.dto.request.RegisterRequestDto
 import com.example.data.network.dto.request.UpdateProfileRequestDto
@@ -20,4 +21,7 @@ interface AuthApi {
 
     @PUT("/api/v1/profile/update")
     suspend fun updateProfile(@Body request: UpdateProfileRequestDto): MessageResponseDto
+
+    @PUT("/api/v1/profile/password")
+    suspend fun changePassword(@Body request: ChangePasswordRequestDto): MessageResponseDto
 }

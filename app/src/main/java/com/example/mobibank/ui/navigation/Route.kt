@@ -8,6 +8,8 @@ object Route {
     const val OPEN_ACCOUNT = "open_account"
 
     const val PROFILE = "profile"
+    const val EDIT_PROFILE = "edit_profile"
+    const val CHANGE_PASSWORD = "change_password"
     const val TRANSFERS_HUB = "transfers_hub"
 
     const val DEPOSITS = "deposits"

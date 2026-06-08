@@ -17,6 +17,8 @@ import com.example.mobibank.feature.deposits.OpenDepositScreen
 import com.example.mobibank.feature.loans.LoansScreen
 import com.example.mobibank.feature.loans.ApplyLoanScreen
 import com.example.mobibank.feature.loans.RepayLoanScreen
+import com.example.mobibank.feature.profile.ChangePasswordScreen
+import com.example.mobibank.feature.profile.EditProfileScreen
 import com.example.mobibank.feature.profile.ProfileScreen
 import com.example.mobibank.feature.transactions.HistoryScreen
 import com.example.mobibank.feature.transactions.TransferScreen
@@ -125,6 +127,20 @@ fun MobiBankNavHost(
 
         composable(Route.PROFILE) {
             ProfileScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = { navController.navigate(Route.EDIT_PROFILE) },
+                onNavigateToChangePassword = { navController.navigate(Route.CHANGE_PASSWORD) }
+            )
+        }
+
+        composable(Route.EDIT_PROFILE) {
+            EditProfileScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Route.CHANGE_PASSWORD) {
+            ChangePasswordScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }

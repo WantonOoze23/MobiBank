@@ -3,6 +3,7 @@ package com.example.mobibank.feature.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.datastore.TokenManager
+import com.example.domain.usecase.auth.ChangePasswordUseCase
 import com.example.domain.usecase.auth.GetProfileUseCase
 import com.example.domain.usecase.auth.UpdateProfileUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +14,8 @@ import kotlinx.coroutines.launch
 class ProfileViewModel(
     private val tokenManager: TokenManager,
     private val getProfileUseCase: GetProfileUseCase,
-    private val updateProfileUseCase: UpdateProfileUseCase
+    private val updateProfileUseCase: UpdateProfileUseCase,
+    private val changePasswordUseCase: ChangePasswordUseCase
 ) : ViewModel() {
 
     private val _profileState = MutableStateFlow<ProfileState>(ProfileState.Loading)
@@ -21,6 +23,9 @@ class ProfileViewModel(
 
     private val _updateState = MutableStateFlow<ProfileUpdateState>(ProfileUpdateState.Idle)
     val updateState: StateFlow<ProfileUpdateState> = _updateState.asStateFlow()
+
+    private val _passwordState = MutableStateFlow<ChangePasswordState>(ChangePasswordState.Idle)
+    val passwordState: StateFlow<ChangePasswordState> = _passwordState.asStateFlow()
 
     init {
         loadProfile()
@@ -38,18 +43,36 @@ class ProfileViewModel(
         }
     }
 
-    fun updateProfile(firstName: String, lastName: String, middleName: String?, email: String) {
+    fun updateProfile(firstName: String, lastName: String, middleName: String?, email: String, currentPassword: String) {
         viewModelScope.launch {
             _updateState.value = ProfileUpdateState.Loading
-            val result = updateProfileUseCase(firstName, lastName, middleName, email)
+            val result = updateProfileUseCase(firstName, lastName, middleName, email, currentPassword)
 
             result.onSuccess {
                 _updateState.value = ProfileUpdateState.Success
-                loadProfile() // Оновлюємо дані після успішного збереження
+                loadProfile()
             }.onFailure { exception ->
                 _updateState.value = ProfileUpdateState.Error(exception.message ?: "Помилка оновлення")
             }
         }
+    }
+
+    fun changePassword(oldPassword: String, newPassword: String) {
+        viewModelScope.launch {
+            _passwordState.value = ChangePasswordState.Loading
+
+            val result = changePasswordUseCase(oldPassword, newPassword)
+
+            result.onSuccess {
+                _passwordState.value = ChangePasswordState.Success
+            }.onFailure { exception ->
+                _passwordState.value = ChangePasswordState.Error(exception.message ?: "Помилка зміни пароля")
+            }
+        }
+    }
+
+    fun resetPasswordState() {
+        _passwordState.value = ChangePasswordState.Idle
     }
 
     fun logout() {

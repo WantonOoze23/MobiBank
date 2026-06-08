@@ -3,6 +3,7 @@ package com.example.data.repository
 import com.example.data.local.datastore.TokenManager
 import com.example.data.mapper.toDomain
 import com.example.data.network.api.AuthApi
+import com.example.data.network.dto.request.ChangePasswordRequestDto
 import com.example.data.network.dto.request.LoginRequestDto
 import com.example.data.network.dto.request.RegisterRequestDto
 import com.example.data.network.dto.request.UpdateProfileRequestDto
@@ -77,10 +78,20 @@ class AuthRepositoryImpl(
         }
     }
 
-    override suspend fun updateProfile(firstName: String, lastName: String, middleName: String?, email: String): Result<String> {
+    override suspend fun updateProfile(firstName: String, lastName: String, middleName: String?, email: String, currentPassword: String): Result<String> {
         return try {
-            val request = UpdateProfileRequestDto(firstName, lastName, middleName, email)
+            val request = UpdateProfileRequestDto(firstName, lastName, middleName, email, currentPassword)
             val response = authApi.updateProfile(request)
+            Result.success(response.message)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun changePassword(oldPassword: String, newPassword: String): Result<String> {
+        return try {
+            val request = ChangePasswordRequestDto(oldPassword, newPassword)
+            val response = authApi.changePassword(request)
             Result.success(response.message)
         } catch (e: Exception) {
             Result.failure(e)

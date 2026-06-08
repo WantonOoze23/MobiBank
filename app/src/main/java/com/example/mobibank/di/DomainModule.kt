@@ -2,6 +2,7 @@ package com.example.mobibank.di
 
 import com.example.domain.usecase.accounts.GetMyAccountsUseCase
 import com.example.domain.usecase.accounts.OpenCardUseCase
+import com.example.domain.usecase.auth.ChangePasswordUseCase
 import com.example.domain.usecase.auth.GetProfileUseCase
 import com.example.domain.usecase.auth.LoginUseCase
 import com.example.domain.usecase.auth.LogoutUseCase
@@ -24,6 +25,7 @@ val domainModule = module {
     factory { LogoutUseCase(get()) }
     factory { GetProfileUseCase(get()) }
     factory { UpdateProfileUseCase(get()) }
+    factory { ChangePasswordUseCase(get()) }
 
     factory { GetMyAccountsUseCase(get()) }
     factory { OpenCardUseCase(get()) }

@@ -52,7 +52,8 @@ val appModule = module {
         ProfileViewModel(
             tokenManager = get(),
             getProfileUseCase = get(),
-            updateProfileUseCase = get()
+            updateProfileUseCase = get(),
+            changePasswordUseCase = get()
         )
     }
 }
