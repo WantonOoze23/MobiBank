@@ -5,9 +5,11 @@ import com.example.data.mapper.toDomain
 import com.example.data.network.api.AuthApi
 import com.example.data.network.dto.request.LoginRequestDto
 import com.example.data.network.dto.request.RegisterRequestDto
+import com.example.data.network.dto.request.UpdateProfileRequestDto
 import com.example.domain.model.AuthResult
 import com.example.domain.model.LoginData
 import com.example.domain.model.RegisterData
+import com.example.domain.model.UserProfileModel
 import com.example.domain.repository.AuthRepository
 
 
@@ -56,6 +58,31 @@ class AuthRepositoryImpl(
             tokenManager.clearSession()
             Result.success(Unit)
         } catch (e: Exception){
+            Result.failure(e)
+        }
+    }
+    override suspend fun getProfile(): Result<UserProfileModel> {
+        return try {
+            val response = authApi.getProfile()
+            val model = UserProfileModel(
+                firstName = response.firstName,
+                lastName = response.lastName,
+                middleName = response.middleName,
+                phone = response.phone,
+                email = response.email
+            )
+            Result.success(model)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateProfile(firstName: String, lastName: String, middleName: String?, email: String): Result<String> {
+        return try {
+            val request = UpdateProfileRequestDto(firstName, lastName, middleName, email)
+            val response = authApi.updateProfile(request)
+            Result.success(response.message)
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }

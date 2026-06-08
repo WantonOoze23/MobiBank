@@ -22,18 +22,23 @@ class AccountsViewModel(
     val openCardState: StateFlow<OpenCardState> = _openCardState.asStateFlow()
 
     init {
-        loadAccounts()
+        loadAccounts(false)
     }
 
-    fun loadAccounts(){
+    fun loadAccounts(isSilent: Boolean = false) {
         viewModelScope.launch {
-            _listState.value = AccountsListState.Loading
+            if (!isSilent) {
+                _listState.value = AccountsListState.Loading
+            }
+
             val result = getMyAccountsUseCase()
 
             result.onSuccess { accounts ->
                 _listState.value = AccountsListState.Success(accounts)
             }.onFailure { exception ->
-                _listState.value = AccountsListState.Error(exception.message ?: "Unknown error")
+                if (!isSilent || _listState.value !is AccountsListState.Success) {
+                    _listState.value = AccountsListState.Error(exception.message ?: "Unknown error")
+                }
             }
         }
     }
@@ -45,7 +50,7 @@ class AccountsViewModel(
 
             result.onSuccess {
                 _openCardState.value = OpenCardState.Success
-                loadAccounts()
+                loadAccounts(true)
             }.onFailure { exception ->
                 _openCardState.value = OpenCardState.Error(exception.message ?: "Unknown error")
             }

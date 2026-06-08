@@ -10,6 +10,7 @@ fun LoanResponseDto.toDomain(): LoanModel {
         amount = this.amount,
         remainingAmount = this.remainingAmount,
         dueDate = this.dueDate,
-        status = LoanStatus.valueOf(this.status)
+        status = LoanStatus.valueOf(this.status),
+        currency = this.currency
     )
 }

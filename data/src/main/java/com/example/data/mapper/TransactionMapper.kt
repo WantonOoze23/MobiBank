@@ -10,6 +10,7 @@ fun TransactionResponseDto.toDomain(): TransactionModel {
         amount = this.amount,
         type = TransactionType.valueOf(this.type),
         timestamp = this.timestamp,
-        counterpartyCard = this.counterpartyCard
+        counterpartyCard = this.counterpartyCard,
+        currency = this.currency
     )
 }

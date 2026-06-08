@@ -11,5 +11,7 @@ interface DepositRepository {
         durationMonths: Int
     ): Result<DepositModel>
 
+    suspend fun closeDeposit(depositId: String, accountId: String): Result<String>
+
     suspend fun getMyDeposits(): Result<List<DepositModel>>
 }

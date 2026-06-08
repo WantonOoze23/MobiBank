@@ -3,6 +3,7 @@ package com.example.domain.repository
 import com.example.domain.model.AuthResult
 import com.example.domain.model.LoginData
 import com.example.domain.model.RegisterData
+import com.example.domain.model.UserProfileModel
 
 interface AuthRepository {
 
@@ -11,4 +12,6 @@ interface AuthRepository {
     suspend fun login(data: LoginData): Result<AuthResult>
 
     suspend fun logout(): Result<Unit>
+    suspend fun getProfile(): Result<UserProfileModel>
+    suspend fun updateProfile(firstName: String, lastName: String, middleName: String?, email: String): Result<String>
 }

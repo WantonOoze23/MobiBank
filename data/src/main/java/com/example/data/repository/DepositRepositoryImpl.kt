@@ -2,6 +2,7 @@ package com.example.data.repository
 
 import com.example.data.mapper.toDomain
 import com.example.data.network.api.DepositApi
+import com.example.data.network.dto.request.CloseDepositRequestDto
 import com.example.data.network.dto.request.OpenDepositRequestDto
 import com.example.domain.model.DepositModel
 import com.example.domain.repository.DepositRepository
@@ -22,6 +23,16 @@ class DepositRepositoryImpl(
             )
             val response = depositApi.openDeposit(request)
             Result.success(response.toDomain())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun closeDeposit(depositId: String, accountId: String): Result<String> {
+        return try {
+            val request = CloseDepositRequestDto(depositId, accountId)
+            val response = depositApi.closeDeposit(request)
+            Result.success(response.message)
         } catch (e: Exception) {
             Result.failure(e)
         }

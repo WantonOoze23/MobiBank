@@ -14,3 +14,10 @@ sealed class ApplyLoanState {
     object Success : ApplyLoanState()
     data class Error(val message: String) : ApplyLoanState()
 }
+
+sealed class RepayLoanState {
+    object Idle : RepayLoanState()
+    object Loading : RepayLoanState()
+    object Success : RepayLoanState()
+    data class Error(val message: String) : RepayLoanState()
+}

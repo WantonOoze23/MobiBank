@@ -1,5 +1,7 @@
 package com.example.mobibank.feature.accounts
 
+import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,9 +15,20 @@ import com.example.domain.model.AccountModel
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.Currency
+import com.example.mobibank.ui.components.BottomNavigationBar
+import com.example.mobibank.ui.components.OutputCurrency
+import com.example.mobibank.ui.navigation.Route
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,14 +40,35 @@ fun AccountsScreen(
     onNavigateToOpenDeposit: (String) -> Unit,
     onNavigateToApplyLoan: (String) -> Unit,
     onNavigateToAllDeposits: () -> Unit,
-    onNavigateToAllLoans: () -> Unit
+    onNavigateToAllLoans: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onBottomNavClick: (String) -> Unit
 ) {
     val listState by viewModel.listState.collectAsStateWithLifecycle()
 
-    var isRefreshing by remember { mutableStateOf(false) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.loadAccounts(isSilent = true)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(15000L)
+            viewModel.loadAccounts(isSilent = true)
+        }
+    }
 
     val refresh = {
-        viewModel.loadAccounts()
+        viewModel.loadAccounts(isSilent = false)
     }
 
     Scaffold(
@@ -46,9 +80,16 @@ fun AccountsScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 actions = {
-                    TextButton(onClick = onNavigateToAllDeposits) { Text("Депозити") }
-                    TextButton(onClick = onNavigateToAllLoans) { Text("Кредити") }
+                    IconButton(onClick = onNavigateToProfile) {
+                        Icon(Icons.Default.Person, contentDescription = "Профіль")
+                    }
                 }
+            )
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                currentRoute = Route.ACCOUNTS,
+                onNavigate = onBottomNavClick
             )
         },
         floatingActionButton = {
@@ -72,7 +113,7 @@ fun AccountsScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(text = error, color = MaterialTheme.colorScheme.error)
                             Spacer(modifier = Modifier.height(16.dp))
-                            Button(onClick = { viewModel.loadAccounts() }) { Text("Спробувати ще раз") }
+                            Button(onClick = refresh) { Text("Спробувати ще раз") }
                         }
                     }
 
@@ -90,7 +131,6 @@ fun AccountsScreen(
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 items(accounts) { account ->
-                                    // ДОДАНО: передаємо колбеки в карточку
                                     AccountCardItem(
                                         account = account,
                                         onHistoryClick = { onNavigateToHistory(account.id) },
@@ -108,11 +148,6 @@ fun AccountsScreen(
     }
 }
 
-data class OutputCurrency(
-    val dollar : String = "$",
-    val euro : String = "€",
-    val uah : String = "₴"
-)
 
 @Composable
 fun AccountCardItem(
@@ -122,6 +157,8 @@ fun AccountCardItem(
     onDepositClick: () -> Unit,
     onLoanClick: () -> Unit
 ) {
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -140,8 +177,18 @@ fun AccountCardItem(
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(16.dp))
+
             val maskedCard = account.cardNumber.chunked(4).joinToString(" ")
-            Text(text = maskedCard, style = MaterialTheme.typography.bodyLarge, letterSpacing = 2.sp)
+
+            Text(
+                text = maskedCard,
+                style = MaterialTheme.typography.bodyLarge,
+                letterSpacing = 2.sp,
+                modifier = Modifier.clickable {
+                    clipboardManager.setText(AnnotatedString(account.cardNumber))
+                    Toast.makeText(context, "Номер картки скопійовано", Toast.LENGTH_SHORT).show()
+                }
+            )
 
             Divider(modifier = Modifier.padding(vertical = 12.dp))
 

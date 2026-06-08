@@ -16,19 +16,21 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.domain.model.TransactionModel
 import com.example.domain.model.TransactionType
+import com.example.mobibank.ui.components.BottomNavigationBar
+import com.example.mobibank.ui.navigation.Route
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
-    accountId: String, // Передається через навігацію
+    accountId: String,
     onNavigateBack: () -> Unit,
+    onBottomNavClick: (String) -> Unit,
     viewModel: TransactionsViewModel = koinViewModel()
 ) {
     val historyState by viewModel.historyState.collectAsStateWithLifecycle()
     var selectedFilter by remember { mutableStateOf<TransactionType?>(null) }
 
-    // Завантажуємо історію при відкритті екрану або зміні фільтра
     LaunchedEffect(accountId, selectedFilter) {
         viewModel.loadHistory(accountId, selectedFilter)
     }
@@ -41,7 +43,14 @@ fun HistoryScreen(
                     IconButton(onClick = onNavigateBack) { Icon(Icons.Default.ArrowBack, "Назад") }
                 }
             )
-        }
+        },
+        bottomBar = {
+            BottomNavigationBar(
+                currentRoute = Route.HISTORY,
+                onNavigate = onBottomNavClick
+            )
+        },
+
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
 
@@ -94,8 +103,14 @@ fun HistoryScreen(
 @Composable
 fun TransactionItem(transaction: TransactionModel) {
     val isIncome = transaction.type == TransactionType.INCOME
-    val amountColor = if (isIncome) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error // Зелений або червоний
+    val amountColor = if (isIncome) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
     val sign = if (isIncome) "+" else "-"
+
+    val currencySymbol = when (transaction.currency) {
+        "USD" -> "$"
+        "EUR" -> "€"
+        else -> "₴"
+    }
 
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -110,11 +125,12 @@ fun TransactionItem(transaction: TransactionModel) {
             transaction.counterpartyCard?.let {
                 Text(text = "Картка: $it", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
-            Text(text = transaction.timestamp.take(10), style = MaterialTheme.typography.labelSmall, color = Color.Gray) // Показуємо тільки дату
+            Text(text = transaction.timestamp.take(10), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
         }
 
         Text(
-            text = "$sign${transaction.amount} ₴",
+            // ВИКОРИСТОВУЄМО ДИНАМІЧНИЙ СИМВОЛ ВАЛЮТИ
+            text = "$sign${transaction.amount} $currencySymbol",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = amountColor

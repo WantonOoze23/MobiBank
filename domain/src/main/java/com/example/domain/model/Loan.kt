@@ -4,6 +4,7 @@ data class LoanModel(
     val id: String,
     val amount: Double,
     val remainingAmount: Double,
+    val currency: String,
     val dueDate: String,
     val status: LoanStatus
 )

@@ -14,3 +14,10 @@ sealed class OpenDepositState {
     object Success : OpenDepositState()
     data class Error(val message: String) : OpenDepositState()
 }
+
+sealed class CloseDepositState {
+    object Idle : CloseDepositState()
+    object Loading : CloseDepositState()
+    object Success : CloseDepositState()
+    data class Error(val message: String) : CloseDepositState()
+}

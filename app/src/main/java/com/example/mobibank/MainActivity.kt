@@ -35,11 +35,20 @@ class MainActivity : ComponentActivity() {
                     val startDestination = remember { mutableStateOf<String?>(null) }
 
                     LaunchedEffect(Unit) {
-                        val token = tokenManager.getToken.first()
-                        if (token.isNullOrBlank()) {
-                            startDestination.value = Route.LOGIN
-                        } else {
-                            startDestination.value = Route.ACCOUNTS
+                        tokenManager.getToken.collect { token ->
+                            if (token.isNullOrBlank()) {
+                                if (startDestination.value == null) {
+                                    startDestination.value = Route.LOGIN
+                                } else {
+                                    navController.navigate(Route.LOGIN) {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                }
+                            } else {
+                                if (startDestination.value == null) {
+                                    startDestination.value = Route.ACCOUNTS
+                                }
+                            }
                         }
                     }
 
